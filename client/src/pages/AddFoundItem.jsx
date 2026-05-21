@@ -1,23 +1,42 @@
-import React, { useState } from "react";
+import React,
+{
+  useState,
+} from "react";
+
 import axios from "axios";
+
+import {
+  toast,
+} from "react-toastify";
+
 
 function AddFoundItem() {
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    location: "",
-    status: "",
-    image: null,
-  });
+  const [formData, setFormData] =
+    useState({
+
+      title: "",
+
+      description: "",
+
+      category: "",
+
+      location: "",
+
+      status: "",
+
+      image: null,
+    });
 
 
   const handleChange = (e) => {
 
     setFormData({
+
       ...formData,
-      [e.target.name]: e.target.value,
+
+      [e.target.name]:
+        e.target.value,
     });
   };
 
@@ -26,34 +45,81 @@ function AddFoundItem() {
 
     e.preventDefault();
 
-    const data = new FormData();
+    const data =
+      new FormData();
 
-    data.append("title", formData.title);
-    data.append("description", formData.description);
-    data.append("category", formData.category);
-    data.append("location", formData.location);
-    data.append("status", formData.status);
+    data.append(
+      "title",
+      formData.title
+    );
 
-    if (formData.image) {
+    data.append(
+      "description",
+      formData.description
+    );
 
-      data.append("image", formData.image);
+    data.append(
+      "category",
+      formData.category
+    );
+
+    data.append(
+      "location",
+      formData.location
+    );
+
+    data.append(
+      "status",
+      formData.status
+    );
+
+    data.append(
+      "date",
+      new Date().toLocaleDateString()
+    );
+
+    data.append(
+      "time",
+      new Date().toLocaleTimeString()
+    );
+
+
+    if (
+      formData.image
+    ) {
+
+      data.append(
+        "image",
+        formData.image
+      );
     }
+
 
     try {
 
       await axios.post(
+
         "http://localhost:5000/api/items/add",
+
         data
       );
 
-      alert("Item Added Successfully");
+      toast.success(
+        "Item Added Successfully"
+      );
 
       setFormData({
+
         title: "",
+
         description: "",
+
         category: "",
+
         location: "",
+
         status: "",
+
         image: null,
       });
 
@@ -61,6 +127,9 @@ function AddFoundItem() {
 
       console.log(err);
 
+      toast.error(
+        "Failed To Add Item"
+      );
     }
   };
 
@@ -74,35 +143,48 @@ function AddFoundItem() {
 
         display: "flex",
 
-        justifyContent: "center",
+        justifyContent:
+          "center",
 
-        alignItems: "center",
+        alignItems:
+          "center",
 
         background:
-          "linear-gradient(to right, #56ab2f, #a8e063)",
-
+          "linear-gradient(to right,#56ab2f,#a8e063)",
       }}
     >
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={
+          handleSubmit
+        }
 
         style={{
 
-          background: "white",
+          background:
+            "white",
 
-          padding: "40px",
+          padding:
+            "40px",
 
-          borderRadius: "15px",
+          borderRadius:
+            "20px",
 
-          width: "400px",
+          width: "450px",
 
+          boxShadow:
+            "0 5px 15px rgba(0,0,0,0.3)",
         }}
       >
 
         <h1
           style={{
-            textAlign: "center",
+
+            textAlign:
+              "center",
+
+            marginBottom:
+              "25px",
           }}
         >
 
@@ -113,96 +195,96 @@ function AddFoundItem() {
 
         <input
           type="text"
+
           name="title"
+
           placeholder="Title"
-          value={formData.title}
-          onChange={handleChange}
 
-          style={{
+          value={
+            formData.title
+          }
 
-            width: "100%",
+          onChange={
+            handleChange
+          }
 
-            padding: "12px",
-
-            marginBottom: "15px",
-
-          }}
+          style={inputStyle}
         />
 
 
         <input
           type="text"
+
           name="description"
+
           placeholder="Description"
-          value={formData.description}
-          onChange={handleChange}
 
-          style={{
+          value={
+            formData.description
+          }
 
-            width: "100%",
+          onChange={
+            handleChange
+          }
 
-            padding: "12px",
-
-            marginBottom: "15px",
-
-          }}
+          style={inputStyle}
         />
 
 
         <input
           type="text"
+
           name="category"
+
           placeholder="Category"
-          value={formData.category}
-          onChange={handleChange}
 
-          style={{
+          value={
+            formData.category
+          }
 
-            width: "100%",
+          onChange={
+            handleChange
+          }
 
-            padding: "12px",
-
-            marginBottom: "15px",
-
-          }}
+          style={inputStyle}
         />
 
 
         <input
           type="text"
+
           name="location"
+
           placeholder="Location"
-          value={formData.location}
-          onChange={handleChange}
 
-          style={{
+          value={
+            formData.location
+          }
 
-            width: "100%",
+          onChange={
+            handleChange
+          }
 
-            padding: "12px",
-
-            marginBottom: "15px",
-
-          }}
+          style={inputStyle}
         />
 
 
         <input
           type="text"
+
           name="status"
+
           placeholder="Status"
-          value={formData.status}
-          onChange={handleChange}
 
-          style={{
+          value={
+            formData.status
+          }
 
-            width: "100%",
+          onChange={
+            handleChange
+          }
 
-            padding: "12px",
-
-            marginBottom: "15px",
-
-          }}
+          style={inputStyle}
         />
 
 
@@ -210,14 +292,19 @@ function AddFoundItem() {
           type="file"
 
           onChange={(e) =>
+
             setFormData({
+
               ...formData,
-              image: e.target.files[0],
+
+              image:
+                e.target.files[0],
             })
           }
 
           style={{
-            marginBottom: "20px",
+            marginBottom:
+              "20px",
           }}
         />
 
@@ -229,16 +316,23 @@ function AddFoundItem() {
 
             width: "100%",
 
-            padding: "12px",
+            padding: "14px",
 
-            background: "green",
+            background:
+              "green",
 
             color: "white",
 
             border: "none",
 
-            cursor: "pointer",
+            borderRadius:
+              "10px",
 
+            cursor:
+              "pointer",
+
+            fontSize:
+              "16px",
           }}
         >
 
@@ -247,8 +341,27 @@ function AddFoundItem() {
         </button>
 
       </form>
+
     </div>
   );
 }
+
+
+const inputStyle = {
+
+  width: "100%",
+
+  padding: "14px",
+
+  marginBottom: "18px",
+
+  borderRadius: "10px",
+
+  border:
+    "1px solid gray",
+
+  fontSize: "15px",
+};
+
 
 export default AddFoundItem;

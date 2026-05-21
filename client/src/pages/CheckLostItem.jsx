@@ -1,11 +1,58 @@
-import React, { useEffect, useState } from "react";
+import React,
+{
+  useEffect,
+  useState,
+} from "react";
+
 import axios from "axios";
+
+import {
+  toast,
+} from "react-toastify";
+
+import {
+  useNavigate,
+} from "react-router-dom";
+
 
 function CheckLostItem() {
 
-  const [items, setItems] = useState([]);
+  const navigate =
+    useNavigate();
 
-  const [search, setSearch] = useState("");
+  const userUSN =
+    localStorage.getItem(
+      "userUSN"
+    );
+
+  const [items, setItems] =
+    useState([]);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [filter, setFilter] =
+    useState("all");
+
+  const [editingId, setEditingId] =
+    useState(null);
+
+  const [editData, setEditData] =
+    useState({
+
+      title: "",
+
+      description: "",
+
+      category: "",
+
+      location: "",
+
+      status: "",
+    });
 
 
   useEffect(() => {
@@ -15,49 +62,157 @@ function CheckLostItem() {
   }, []);
 
 
-  const fetchItems = () => {
+  const fetchItems = async () => {
 
-    axios
-      .get("http://localhost:5000/api/items")
+    try {
 
-      .then((res) => {
+      const res =
+        await axios.get(
+          "http://localhost:5000/api/items"
+        );
 
-        setItems(res.data);
+      setItems(res.data);
 
-      })
+      setLoading(false);
 
-      .catch((err) => {
+    } catch (err) {
 
-        console.log(err);
+      console.log(err);
 
-      });
+      setLoading(false);
+    }
   };
 
 
-  const deleteItem = (id) => {
+  const logout = () => {
 
-    axios
-      .delete(`http://localhost:5000/api/items/${id}`)
+    localStorage.removeItem(
+      "userUSN"
+    );
 
-      .then(() => {
-
-        alert("Item Deleted");
-
-        fetchItems();
-
-      })
-
-      .catch((err) => {
-
-        console.log(err);
-
-      });
+    navigate("/");
   };
 
 
-  const filteredItems = items.filter((item) =>
-    item.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const deleteItem = async (id) => {
+
+    try {
+
+      await axios.delete(
+        `http://localhost:5000/api/items/${id}`
+      );
+
+      toast.success(
+        "Item Deleted"
+      );
+
+      fetchItems();
+
+    } catch (err) {
+
+      console.log(err);
+    }
+  };
+
+
+  const startEdit = (item) => {
+
+    setEditingId(item._id);
+
+    setEditData({
+
+      title: item.title,
+
+      description:
+        item.description,
+
+      category:
+        item.category,
+
+      location:
+        item.location,
+
+      status:
+        item.status,
+    });
+  };
+
+
+  const updateItem = async () => {
+
+    try {
+
+      await axios.put(
+
+        `http://localhost:5000/api/items/${editingId}`,
+
+        editData
+      );
+
+      toast.success(
+        "Item Updated"
+      );
+
+      setEditingId(null);
+
+      fetchItems();
+
+    } catch (err) {
+
+      console.log(err);
+    }
+  };
+
+
+  const claimItem = async (item) => {
+
+    try {
+
+      await axios.put(
+
+        `http://localhost:5000/api/items/${item._id}`,
+
+        {
+          ...item,
+
+          status:
+            "claimed",
+        }
+      );
+
+      toast.success(
+        "Item Claimed"
+      );
+
+      fetchItems();
+
+    } catch (err) {
+
+      console.log(err);
+    }
+  };
+
+
+  const filteredItems =
+    items.filter((item) => {
+
+      const matchesSearch =
+        item.title
+          .toLowerCase()
+          .includes(
+            search.toLowerCase()
+          );
+
+      const matchesFilter =
+        filter === "all"
+          ? true
+          : item.status === filter;
+
+      return (
+        matchesSearch &&
+        matchesFilter
+      );
+    });
 
 
   return (
@@ -70,34 +225,94 @@ function CheckLostItem() {
         padding: "30px",
 
         background:
-          "linear-gradient(to right, #2193b0, #6dd5ed)",
-
+          "linear-gradient(to right,#141e30,#243b55)",
       }}
     >
 
-      <h1
+      <div
         style={{
 
-          color: "white",
+          display: "flex",
 
-          textAlign: "center",
+          justifyContent:
+            "space-between",
 
-          marginBottom: "30px",
+          alignItems:
+            "center",
 
+          marginBottom:
+            "30px",
         }}
       >
 
-        Check Lost Items
+        <div>
 
-      </h1>
+          <h1
+            style={{
+              color: "white",
+            }}
+          >
+
+            Lost & Found Dashboard
+
+          </h1>
+
+          <p
+            style={{
+              color: "white",
+            }}
+          >
+
+            Welcome,
+            {" "}
+            {userUSN}
+
+          </p>
+
+        </div>
+
+
+        <button
+          onClick={logout}
+
+          style={{
+
+            padding:
+              "12px 20px",
+
+            background:
+              "#e74c3c",
+
+            color: "white",
+
+            border: "none",
+
+            borderRadius:
+              "10px",
+
+            cursor:
+              "pointer",
+          }}
+        >
+
+          Logout
+
+        </button>
+
+      </div>
 
 
       <input
         type="text"
-        placeholder="Search item..."
+
+        placeholder="Search Item"
+
         value={search}
+
         onChange={(e) =>
-          setSearch(e.target.value)
+          setSearch(
+            e.target.value
+          )
         }
 
         style={{
@@ -106,34 +321,116 @@ function CheckLostItem() {
 
           padding: "15px",
 
-          borderRadius: "10px",
+          borderRadius:
+            "10px",
 
           border: "none",
 
-          marginBottom: "30px",
-
+          marginBottom:
+            "20px",
         }}
       />
 
 
-      {filteredItems.length === 0 ? (
+      <div
+        style={{
+          marginBottom:
+            "30px",
+        }}
+      >
 
-        <h2
-          style={{
+        <button
+          onClick={() =>
+            setFilter("all")
+          }
 
-            color: "white",
-
-            textAlign: "center",
-
-          }}
+          style={filterBtn}
         >
 
-          Item not found
+          All
 
-        </h2>
+        </button>
 
-      ) : (
 
+        <button
+          onClick={() =>
+            setFilter("lost")
+          }
+
+          style={filterBtn}
+        >
+
+          Lost
+
+        </button>
+
+
+        <button
+          onClick={() =>
+            setFilter("found")
+          }
+
+          style={filterBtn}
+        >
+
+          Found
+
+        </button>
+
+
+        <button
+          onClick={() =>
+            setFilter(
+              "claimed"
+            )
+          }
+
+          style={filterBtn}
+        >
+
+          Claimed
+
+        </button>
+
+      </div>
+
+
+      {
+        loading && (
+
+          <h2
+            style={{
+              color:
+                "white",
+            }}
+          >
+
+            Loading...
+
+          </h2>
+        )
+      }
+
+
+      {
+        filteredItems.length === 0
+        && !loading && (
+
+          <h2
+            style={{
+              color:
+                "white",
+            }}
+          >
+
+            Item not found
+
+          </h2>
+        )
+      }
+
+
+      {
         filteredItems.map((item) => (
 
           <div
@@ -141,100 +438,377 @@ function CheckLostItem() {
 
             style={{
 
-              background: "white",
+              background:
+                "white",
 
-              padding: "20px",
+              padding:
+                "25px",
 
-              marginBottom: "20px",
+              borderRadius:
+                "15px",
 
-              borderRadius: "15px",
-
+              marginBottom:
+                "20px",
             }}
           >
 
-            {item.image && (
+            {
+              editingId === item._id
+              ? (
 
-              <img
-                src={`http://localhost:5000/uploads/${item.image}`}
-                alt=""
-                width="250"
-                style={{
-                  borderRadius: "10px",
-                }}
-              />
+                <div>
 
-            )}
+                  <input
+                    type="text"
 
+                    value={
+                      editData.title
+                    }
 
-            <h2>{item.title}</h2>
+                    onChange={(e) =>
+                      setEditData({
 
-            <p>{item.description}</p>
+                        ...editData,
 
-            <p>
-              <b>Category:</b> {item.category}
-            </p>
+                        title:
+                          e.target.value,
+                      })
+                    }
 
-            <p>
-              <b>Location:</b> {item.location}
-            </p>
-
-            <p>
-              <b>Status:</b> {item.status}
-            </p>
+                    style={inputStyle}
+                  />
 
 
-            <button
-              style={{
+                  <input
+                    type="text"
 
-                background: "orange",
+                    value={
+                      editData.description
+                    }
 
-                color: "white",
+                    onChange={(e) =>
+                      setEditData({
 
-                border: "none",
+                        ...editData,
 
-                padding: "10px",
+                        description:
+                          e.target.value,
+                      })
+                    }
 
-                marginRight: "10px",
-
-                cursor: "pointer",
-
-              }}
-            >
-
-              Edit
-
-            </button>
+                    style={inputStyle}
+                  />
 
 
-            <button
-              onClick={() =>
-                deleteItem(item._id)
-              }
+                  <input
+                    type="text"
 
-              style={{
+                    value={
+                      editData.category
+                    }
 
-                background: "red",
+                    onChange={(e) =>
+                      setEditData({
 
-                color: "white",
+                        ...editData,
 
-                border: "none",
+                        category:
+                          e.target.value,
+                      })
+                    }
 
-                padding: "10px",
+                    style={inputStyle}
+                  />
 
-                cursor: "pointer",
 
-              }}
-            >
+                  <input
+                    type="text"
 
-              Delete
+                    value={
+                      editData.location
+                    }
 
-            </button>
+                    onChange={(e) =>
+                      setEditData({
+
+                        ...editData,
+
+                        location:
+                          e.target.value,
+                      })
+                    }
+
+                    style={inputStyle}
+                  />
+
+
+                  <input
+                    type="text"
+
+                    value={
+                      editData.status
+                    }
+
+                    onChange={(e) =>
+                      setEditData({
+
+                        ...editData,
+
+                        status:
+                          e.target.value,
+                      })
+                    }
+
+                    style={inputStyle}
+                  />
+
+
+                  <button
+                    onClick={
+                      updateItem
+                    }
+
+                    style={saveBtn}
+                  >
+
+                    Save
+
+                  </button>
+
+                </div>
+
+              )
+              : (
+
+                <div>
+
+                  <h2>
+                    {item.title}
+                  </h2>
+
+                  <p>
+                    <b>
+                      Description:
+                    </b>
+                    {" "}
+                    {item.description}
+                  </p>
+
+                  <p>
+                    <b>
+                      Category:
+                    </b>
+                    {" "}
+                    {item.category}
+                  </p>
+
+                  <p>
+                    <b>
+                      Location:
+                    </b>
+                    {" "}
+                    {item.location}
+                  </p>
+
+                  <p>
+                    <b>
+                      Status:
+                    </b>
+                    {" "}
+                    {item.status}
+                  </p>
+
+                  <p>
+                    <b>
+                      Date:
+                    </b>
+                    {" "}
+                    {item.date}
+                  </p>
+
+                  <p>
+                    <b>
+                      Time:
+                    </b>
+                    {" "}
+                    {item.time}
+                  </p>
+
+
+                  {
+                    item.image && (
+
+                      <img
+                        src={`http://localhost:5000/uploads/${item.image}`}
+
+                        alt="item"
+
+                        width="250"
+
+                        style={{
+                          borderRadius:
+                            "10px",
+                        }}
+                      />
+                    )
+                  }
+
+
+                  <br /><br />
+
+
+                  <button
+                    onClick={() =>
+                      startEdit(item)
+                    }
+
+                    style={editBtn}
+                  >
+
+                    Edit
+
+                  </button>
+
+
+                  <button
+                    onClick={() =>
+                      claimItem(item)
+                    }
+
+                    style={claimBtn}
+                  >
+
+                    Claim
+
+                  </button>
+
+
+                  <button
+                    onClick={() =>
+                      deleteItem(
+                        item._id
+                      )
+                    }
+
+                    style={deleteBtn}
+                  >
+
+                    Delete
+
+                  </button>
+
+                </div>
+              )
+            }
 
           </div>
         ))
-      )}
+      }
+
     </div>
   );
 }
+
+
+const filterBtn = {
+
+  padding: "10px 20px",
+
+  marginRight: "10px",
+
+  border: "none",
+
+  borderRadius: "10px",
+
+  background: "#3498db",
+
+  color: "white",
+
+  cursor: "pointer",
+};
+
+
+const editBtn = {
+
+  padding: "10px 20px",
+
+  marginRight: "10px",
+
+  border: "none",
+
+  borderRadius: "10px",
+
+  background: "#f39c12",
+
+  color: "white",
+
+  cursor: "pointer",
+};
+
+
+const claimBtn = {
+
+  padding: "10px 20px",
+
+  marginRight: "10px",
+
+  border: "none",
+
+  borderRadius: "10px",
+
+  background: "#2ecc71",
+
+  color: "white",
+
+  cursor: "pointer",
+};
+
+
+const deleteBtn = {
+
+  padding: "10px 20px",
+
+  border: "none",
+
+  borderRadius: "10px",
+
+  background: "#e74c3c",
+
+  color: "white",
+
+  cursor: "pointer",
+};
+
+
+const saveBtn = {
+
+  padding: "10px 20px",
+
+  border: "none",
+
+  borderRadius: "10px",
+
+  background: "#2ecc71",
+
+  color: "white",
+
+  cursor: "pointer",
+};
+
+
+const inputStyle = {
+
+  width: "100%",
+
+  padding: "12px",
+
+  marginBottom: "15px",
+
+  borderRadius: "10px",
+
+  border:
+    "1px solid gray",
+};
+
 
 export default CheckLostItem;
